@@ -1,0 +1,36 @@
+diff --git a/node_modules/app-builder-lib/out/targets/nsis/NsisTarget.js b/node_modules/app-builder-lib/out/targets/nsis/NsisTarget.js
+index 1e4ef94..3630cd1 100644
+--- a/node_modules/app-builder-lib/out/targets/nsis/NsisTarget.js
++++ b/node_modules/app-builder-lib/out/targets/nsis/NsisTarget.js
+@@ -350,23 +350,15 @@ class NsisTarget extends core_1.Target {
+         defines.UNINSTALLER_OUT_FILE = isWin ? uninstallerPath : path.win32.join("Z:", uninstallerPath);
+         await this.executeMakensis(defines, commands, sharedHeader + (await this.computeFinalScript(script, false, archs)));
+         // http://forums.winamp.com/showthread.php?p=3078545
+-        if ((0, macosVersion_1.isMacOsCatalina)()) {
+-            try {
+-                await nsisUtil_1.UninstallerReader.exec(installerPath, uninstallerPath);
+-            }
+-            catch (error) {
+-                builder_util_1.log.warn(`packager.vm is used: ${error.message}`);
+-                const vm = await packager.vm.value;
+-                await vm.exec(installerPath, []);
+-                // Parallels VM can exit after command execution, but NSIS continue to be running
+-                let i = 0;
+-                while (!(await (0, builder_util_1.exists)(uninstallerPath)) && i++ < 100) {
+-                    // noinspection JSUnusedLocalSymbols
+-                    await new Promise((resolve, _reject) => setTimeout(resolve, 300));
+-                }
+-            }
++        // Use pure-JS UninstallerReader on all non-Windows platforms (avoids wine32 dependency)
++        try {
++            await nsisUtil_1.UninstallerReader.exec(installerPath, uninstallerPath);
+         }
+-        else {
++        catch (error) {
++            if (process.platform === "win32") {
++                throw error;
++            }
++            builder_util_1.log.warn(`UninstallerReader failed, falling back to wine: ${error.message}`);
+             await (0, wine_1.execWine)(installerPath, null, [], { env: { __COMPAT_LAYER: "RunAsInvoker" } });
+         }
+         await packager.signIf(uninstallerPath);
