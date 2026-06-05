@@ -1,13 +1,44 @@
 {
-  "name": "remindme-",
+  "name": "remindme",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Bill pay reminder app",
+  "author": "RemindMe!",
   "type": "module",
+  "main": "electron.cjs",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "electron:build": "npm run build && electron-builder --win nsis --x64",
+    "electron:build:linux": "npm run build && electron-builder --linux AppImage --x64"
+  },
+  "build": {
+    "appId": "com.remindme.app",
+    "productName": "RemindMe!",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron.cjs"
+    ],
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "icon": "public/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "RemindMe!"
+    },
+    "linux": {
+      "target": [{ "target": "AppImage", "arch": ["x64"] }],
+      "category": "Finance"
+    }
   },
   "dependencies": {
     "lucide-react": "^1.17.0",
@@ -21,6 +52,8 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "electron": "^42.3.3",
+    "electron-builder": "^26.8.1",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
